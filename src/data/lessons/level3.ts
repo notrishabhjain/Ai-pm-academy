@@ -1,0 +1,293 @@
+import { Globe, Brain, FolderLock, MessageCircleQuestion, HelpCircle, FileInput, Inbox, Scissors, Sigma, Database, Search, Sparkles, KeyRound, Combine, ArrowDownWideNarrow, ListOrdered, Bot, Wand2, BookOpen, GraduationCap, Files, Scale } from 'lucide-react';
+import type { Lesson } from '../types';
+
+export const level3Lessons: Lesson[] = [
+  {
+    id: 'private-data-gap',
+    levelId: 3,
+    title: 'Why LLMs Don’t Know Your Private Data',
+    summary: 'A frontier model has read much of the public internet — but not your circulars, SOPs, case files or last month’s policy change.',
+    minutes: 10,
+    analogy: {
+      title: 'The brilliant consultant on day one',
+      story: [
+        'Your organisation hires a brilliant consultant from a top firm. They have read thousands of reports, know every industry framework and can write beautifully. On their first morning you ask, “What is our travel reimbursement limit for Tier-2 cities?”',
+        'They have never seen your internal circulars. A good consultant would say, “Let me check the policy.” A people-pleasing consultant answers anyway: “Typically around ₹2,500 per day.” It sounds reasonable — and it is wrong. Your circular changed it to ₹3,200 last month.',
+        'You have three ways to fix this: hand them the relevant page of the policy each time they are asked (RAG), make them read the entire policy binder before every single question (long context), or send them on a months-long training course about your organisation (fine-tuning) — which will be outdated the next time a circular is issued.',
+      ],
+      mapping: [
+        { everyday: 'Everything the consultant read before joining', ai: 'Public training data, up to the knowledge cutoff' },
+        { everyday: 'Your internal circulars and files', ai: 'Private enterprise data — never in the training set' },
+        { everyday: 'Confident guess based on “typical” policies', ai: 'Hallucination from general knowledge' },
+        { everyday: 'Handing them the right page when asked', ai: 'Retrieval-Augmented Generation (RAG)' },
+      ],
+      oneLiner: 'Models only know public data up to their cutoff; private and recent knowledge must be supplied at question time.',
+    },
+    diagram: {
+      caption: 'Where a model’s knowledge comes from — and the gap your project must close.',
+      nodes: [
+        { id: 'public', label: 'Public data', sub: 'web, books, code', icon: Globe },
+        { id: 'model', label: 'Model knowledge', sub: 'frozen at cutoff', icon: Brain },
+        { id: 'private', label: 'Your private data', sub: 'SOPs · circulars · DBs', icon: FolderLock },
+        { id: 'q', label: 'User question', sub: 'about your org', icon: MessageCircleQuestion },
+        { id: 'gap', label: 'The gap', sub: 'guess vs. ground', icon: HelpCircle },
+        { id: 'supply', label: 'Supply context', sub: 'RAG at query time', icon: FileInput },
+      ],
+      steps: [
+        { title: 'Models learn from public data', body: 'Pre-training uses publicly available web pages, books, code and licensed datasets — collected up to a cutoff date.', active: ['public', 'model'] },
+        { title: 'Your private data was never included', body: 'Intranet pages, PDFs on shared drives, ticket histories, citizen databases and last week’s circular are not in any vendor’s training set — and you would not want them to be.', active: ['private'] },
+        { title: 'A user asks an organisation-specific question', body: '“What is the Tier-2 city travel limit?” “Which form does a pensioner use to update bank details?” These depend entirely on your data.', active: ['q'] },
+        { title: 'Without context, the model fills the gap', body: 'It answers from patterns of similar organisations: plausible, fluent and often wrong. The more specific the question (amounts, form numbers, deadlines), the riskier the guess.', active: ['q', 'model', 'gap'], peek: 'Q: Tier-2 travel limit?\nA (no context): "Typically ₹2,500 per day." ❌ (actual: ₹3,200 per Circular 14/2026)' },
+        { title: 'Supply the right context at question time', body: 'Retrieve the relevant passages from your documents and include them in the prompt. Now the model reads the answer rather than recalling a guess — and can cite it.', active: ['private', 'supply', 'q'], peek: 'Context: "[Circular 14/2026] Daily allowance for Tier-2 cities is revised to ₹3,200…"\nA: "₹3,200 per day [Circular 14/2026]" ✅' },
+      ],
+    },
+    sandboxTitle: 'Ask the model about “your” organisation',
+    sandboxIntro: 'Ask organisation-specific questions with and without supplying the policy text, and see how a recent policy change (after the model’s knowledge cutoff) catches it out.',
+    pmLens: {
+      whenToUse: [
+        'Any assistant answering questions about internal policies, procedures, products, cases or customers.',
+        'Any domain where facts change after the model’s cutoff (circulars, prices, schemes, rules).',
+        'Whenever answers must be traceable to an authoritative source.',
+      ],
+      costLatency: [
+        'Supplying context adds input tokens (typically 1,000–5,000 per question) — budget for it.',
+        'Building the knowledge pipeline (ingestion, access control, refresh) is the real effort, not the LLM call.',
+        'Stale indexes are a hidden cost: plan a refresh cadence matching how often documents change.',
+      ],
+      failureModes: [
+        'Demo questions answered from “general knowledge” that happen to be right — hiding the gap until launch.',
+        'Indexing outdated or draft documents alongside current ones.',
+        'Leaking restricted documents to users who shouldn’t see them (no permission-aware retrieval).',
+      ],
+      questions: [
+        'Which questions in our golden dataset require private or post-cutoff knowledge?',
+        'What is the source of truth for each document type, and how quickly do updates reach the index?',
+        'Does retrieval respect the user’s access permissions?',
+      ],
+    },
+    quiz: [
+      { q: 'Why can’t a frontier model answer “What is our Tier-2 travel limit?” out of the box?', options: ['It is not smart enough', 'Your internal circulars were never in its training data', 'The question is too short', 'Temperature is too low'], answer: 1, why: 'Private documents are not part of public pre-training data.' },
+      { q: 'A policy changed last week. What is the most practical way to make the assistant answer correctly?', options: ['Retrain the model', 'Retrieve the updated policy text and include it in the prompt (RAG)', 'Increase the context window', 'Wait for the next model release'], answer: 1, why: 'RAG supplies fresh facts at question time without retraining.' },
+      { q: 'What is a key governance requirement for enterprise RAG?', options: ['Using the largest model', 'Permission-aware retrieval so users only see documents they are allowed to', 'High temperature', 'No logging'], answer: 1, why: 'Retrieval must respect access control, or the assistant becomes a data-leak channel.' },
+    ],
+    keyTerms: ['Knowledge cutoff', 'RAG (Retrieval-Augmented Generation)', 'Grounding', 'Hallucination', 'Fine-tuning'],
+  },
+  {
+    id: 'rag-stages',
+    levelId: 3,
+    title: 'The 5 Stages of RAG',
+    summary: 'Ingestion → Chunking → Embedding → Retrieval → Grounded Generation. Every RAG failure lives in one of these five boxes.',
+    minutes: 14,
+    analogy: {
+      title: 'The research librarian with index cards',
+      story: [
+        'Imagine a superb research librarian. First, they acquire and clean up every book and file your organisation owns — fixing smudged photocopies and removing duplicates. That is ingestion.',
+        'Next, they cut each document into index cards, one idea per card, and repeat the last line of one card at the top of the next so no idea is cut in half. That is chunking with overlap. Then they stamp each card with a “meaning coordinate” so similar cards can be found together. That is embedding, and the card cabinet is the vector database.',
+        'When you ask a question, they pull the five most relevant cards (retrieval) and write your answer using only those cards, footnoting each card number (grounded generation). If the answer is wrong, a good librarian asks: was the book never acquired, was the card cut badly, was it filed in the wrong place, did I pull the wrong cards — or did I write the answer carelessly?',
+      ],
+      mapping: [
+        { everyday: 'Acquiring and cleaning books', ai: 'Ingestion (parsing PDFs, OCR, cleaning, metadata)' },
+        { everyday: 'Cutting into index cards with repeated lines', ai: 'Chunking with overlap' },
+        { everyday: 'Stamping meaning coordinates; card cabinet', ai: 'Embeddings stored in a vector database' },
+        { everyday: 'Pulling the five most relevant cards', ai: 'Retrieval (top-K)' },
+        { everyday: 'Writing the answer with card footnotes', ai: 'Grounded generation with citations' },
+      ],
+      oneLiner: 'RAG is a pipeline, not a model — and answer quality is capped by its weakest stage.',
+    },
+    diagram: {
+      caption: 'The offline indexing pipeline (stages 1–3) and the online question pipeline (stages 4–5).',
+      nodes: [
+        { id: 'ingest', label: '1 · Ingestion', sub: 'parse · clean · tag', icon: Inbox },
+        { id: 'chunk', label: '2 · Chunking', sub: 'size · overlap', icon: Scissors },
+        { id: 'embed', label: '3 · Embedding', sub: 'vectors', icon: Sigma },
+        { id: 'retrieve', label: '4 · Retrieval', sub: 'vector DB · top-K', icon: Database },
+        { id: 'generate', label: '5 · Generation', sub: 'grounded + cited', icon: Sparkles },
+      ],
+      steps: [
+        { title: 'Stage 1 — Ingestion', body: 'Load documents from their sources (SharePoint, file shares, portals, databases), extract text from PDFs and scans (OCR), strip headers/footers, and attach metadata: document type, department, date, access level. Garbage in here poisons everything downstream.', active: ['ingest'], peek: 'source: /circulars/2026/C-14.pdf\nmetadata: { dept: "Finance", issued: "2026-10-02", access: "internal" }\nOCR confidence: 0.97' },
+        { title: 'Stage 2 — Chunking', body: 'Split documents into passages. Too small and facts lose their context; too large and retrieval gets noisy and expensive. Overlap repeats a little text across boundaries. Respecting headings and sentences beats blind character counts.', active: ['chunk'], peek: 'strategy: sentence-aware, 80 words, 25% overlap, never cross section headings\n→ 1 policy (2,400 words) ≈ 38 chunks' },
+        { title: 'Stage 3 — Embedding & indexing', body: 'Each chunk is converted to a vector by an embedding model and stored in a vector database alongside its text and metadata. This runs offline — and must re-run whenever documents change.', active: ['embed', 'retrieve'], peek: 'chunk_17 → [0.12, -0.44, …] (1,024 dims) → upsert into index "policies_v3"' },
+        { title: 'Stage 4 — Retrieval', body: 'At question time, the query is embedded and the nearest chunks are fetched (often combined with keyword search and a reranker, plus metadata filters like “only current circulars the user may access”). Top-K chunks go forward.', active: ['retrieve'], peek: 'query: "Tier-2 travel limit"\ntop-3: chunk_17 (0.89), chunk_18 (0.74), chunk_03 (0.61)' },
+        { title: 'Stage 5 — Grounded generation', body: 'The LLM receives the question plus retrieved chunks with an instruction: answer only from these sources, cite them, and say “not found” otherwise. The output includes citations users can click to verify.', active: ['generate'], peek: 'System: Answer ONLY from the sources. Cite as [Source #n]. If absent, say you could not find it.\nAnswer: "₹3,200 per day for Tier-2 cities [Source #1]."' },
+      ],
+    },
+    sandboxTitle: 'Debug the pipeline: break one stage at a time',
+    sandboxIntro: 'Each control degrades or improves one stage. Watch the health of every stage, find the bottleneck, and see how the final answer to a test question changes.',
+    pmLens: {
+      whenToUse: [
+        'Knowledge-heavy assistants: policy Q&A, IT helpdesk, citizen FAQs, product support, case research.',
+        'When answers need citations and must reflect the latest version of documents.',
+        'When the knowledge base is too large to paste into every prompt.',
+      ],
+      costLatency: [
+        'One-off: ingestion and embedding of the corpus (cheap compute, expensive engineering for messy PDFs).',
+        'Recurring: vector DB hosting, re-indexing on updates, and extra input tokens per query (top-K × chunk size).',
+        'Retrieval adds ~50–300 ms; reranking adds another ~100–300 ms.',
+      ],
+      failureModes: [
+        'Scanned PDFs with poor OCR → retrieval cannot find text that “isn’t there”.',
+        'Tables and forms flattened into gibberish during parsing.',
+        'Wrong chunk size → facts separated from their qualifiers.',
+        'Stale index — answers cite superseded circulars.',
+        'Generation ignores sources or cites the wrong chunk.',
+      ],
+      questions: [
+        'For our worst failing questions, which of the five stages broke? Do we log enough to tell?',
+        'How do we parse tables, scanned documents and multilingual content?',
+        'What is our re-indexing trigger and SLA when a source document changes?',
+      ],
+    },
+    quiz: [
+      { q: 'Which stage turns chunks into vectors?', options: ['Ingestion', 'Chunking', 'Embedding', 'Generation'], answer: 2, why: 'The embedding model converts each chunk to a vector stored in the vector database.' },
+      { q: 'Answers keep citing an old circular that was replaced last month. Which stage is most likely at fault?', options: ['Generation temperature', 'Ingestion/indexing refresh', 'Tokenization', 'The model’s cutoff'], answer: 1, why: 'The index was not refreshed (or the superseded document was not removed/flagged).' },
+      { q: 'Why add chunk overlap?', options: ['To save money', 'So facts that straddle a chunk boundary are not separated from their context', 'To make embeddings smaller', 'It is required by vector databases'], answer: 1, why: 'Overlap repeats a little text so context isn’t cut in half at boundaries.' },
+    ],
+    keyTerms: ['Ingestion', 'Chunking', 'Chunk overlap', 'Embedding', 'Vector database', 'Top-K', 'Grounding'],
+  },
+  {
+    id: 'search-modes',
+    levelId: 3,
+    title: 'Keyword (BM25) vs. Vector vs. Hybrid + Reranking',
+    summary: 'Exact-match search finds codes and IDs; semantic search finds meaning; hybrid with a reranker gets the best of both.',
+    minutes: 12,
+    analogy: {
+      title: 'Two ways to find something in a library',
+      story: [
+        'The first way is the index at the back of the book: look up the exact word “E07” or “Section 14(b)” and you get exactly those pages. Perfect for codes and names — useless if you search “misplaced my work computer” and the book only ever says “lost endpoint”. That is keyword search, and BM25 is its classic scoring formula.',
+        'The second way is asking a librarian who understands meaning: “something about losing travel documents” and they bring you the passport-reissue chapter. Brilliant for paraphrases — but they might hand you “Form 12A” when you asked for “Form 12B”, because the two sound alike in meaning. That is vector (semantic) search.',
+        'Hybrid search asks both and merges their lists. Then a senior librarian — the reranker — carefully reads the top 20 candidates against your exact question and puts the best ones on top. Most serious production RAG systems use exactly this combination.',
+      ],
+      mapping: [
+        { everyday: 'Index at the back of the book', ai: 'Keyword search (BM25)' },
+        { everyday: 'Librarian who understands meaning', ai: 'Vector / semantic search' },
+        { everyday: 'Merging both lists', ai: 'Hybrid search (e.g. Reciprocal Rank Fusion)' },
+        { everyday: 'Senior librarian reading the shortlist', ai: 'Reranker (cross-encoder)' },
+      ],
+      oneLiner: 'Keyword search is precise but literal, vector search is flexible but fuzzy — hybrid plus reranking is the production default.',
+    },
+    diagram: {
+      caption: 'The hybrid retrieval pipeline used by most production RAG systems.',
+      nodes: [
+        { id: 'query', label: 'Query', sub: '“pen drive allowed?”', icon: Search },
+        { id: 'kw', label: 'Keyword (BM25)', sub: 'exact terms', icon: KeyRound },
+        { id: 'vec', label: 'Vector search', sub: 'meaning', icon: Sigma },
+        { id: 'fuse', label: 'Fusion', sub: 'RRF', icon: Combine },
+        { id: 'rerank', label: 'Reranker', sub: 'reads each candidate', icon: ArrowDownWideNarrow },
+        { id: 'topk', label: 'Top-K to LLM', sub: 'best 3–5', icon: ListOrdered },
+      ],
+      steps: [
+        { title: 'The query arrives', body: '“Can I use my pen drive to copy files?” — note the policy says “USB mass storage” and “removable media”, never “pen drive”.', active: ['query'] },
+        { title: 'Keyword search (BM25)', body: 'Scores chunks by how often query words appear, weighting rare words more and penalising very long chunks. Finds “drive” but not “USB”. Excellent for IDs, codes, names and acronyms.', active: ['query', 'kw'], peek: 'BM25("pen drive copy files") → chunk 41 (6.2): "…hardware-encrypted drives…"\n(misses the chunk that says "USB mass storage is blocked")' },
+        { title: 'Vector search', body: 'Embeds the query and finds chunks with similar meaning — “pen drive” ≈ “USB storage” ≈ “removable media”. Weak on exact codes like “E07” vs “E01”.', active: ['query', 'vec'], peek: 'cos(query, chunk 40 "USB mass storage is blocked…") = 0.86' },
+        { title: 'Fuse the two ranked lists', body: 'Reciprocal Rank Fusion adds 1/(60 + rank) from each list, so chunks that rank well in either list rise. No score calibration needed.', active: ['kw', 'vec', 'fuse'], peek: 'RRF(chunk 40) = 1/(60+4) + 1/(60+1) = 0.0320\nRRF(chunk 41) = 1/(60+1) + 1/(60+3) = 0.0323' },
+        { title: 'Rerank the shortlist', body: 'A reranker model reads the query and each candidate together and scores true relevance. Slower than vector search, so it only sees the top ~20–50 candidates.', active: ['fuse', 'rerank'] },
+        { title: 'Send the best few to the LLM', body: 'Only the top 3–5 reranked chunks go into the prompt — fewer tokens, less noise, better answers.', active: ['topk'] },
+      ],
+    },
+    sandboxTitle: 'Race the three search modes',
+    sandboxIntro: 'The same query runs through keyword, vector and hybrid+rerank retrieval over three real documents. A ✅ marks chunks that actually contain the answer. Try the synonym and exact-code queries.',
+    pmLens: {
+      whenToUse: [
+        'Keyword: users search by IDs, form numbers, section codes, names, error codes.',
+        'Vector: users describe problems in their own words, multiple languages, paraphrases.',
+        'Hybrid + reranker: the default for production RAG; worth the extra latency for quality.',
+        'Metadata filters (date, department, access level) on top of all modes.',
+      ],
+      costLatency: [
+        'BM25 is extremely cheap and fast; many databases include it for free.',
+        'Vector search needs embeddings for every chunk and every query (cheap) and a vector index (hosting cost).',
+        'Rerankers add ~100–300 ms and a per-query fee, but often allow smaller top-K → fewer LLM tokens.',
+      ],
+      failureModes: [
+        'Pure vector search returning the wrong error code or form number.',
+        'Pure keyword search failing on synonyms, typos and Hinglish.',
+        'Reranker never evaluated — added “because best practice” with unknown impact.',
+        'No “no relevant result” threshold, so the LLM always receives something, even junk.',
+      ],
+      questions: [
+        'What share of our real user queries contain exact identifiers vs. natural-language descriptions?',
+        'What is our retrieval hit-rate (answer chunk in top-K) per search mode on the golden dataset?',
+        'Do we have a relevance threshold below which we return “not found” instead of weak chunks?',
+      ],
+    },
+    quiz: [
+      { q: 'A user searches for error “E07”. Which mode is most reliable?', options: ['Pure vector search', 'Keyword (BM25) or hybrid', 'Random sampling', 'Long context'], answer: 1, why: 'Exact codes are keyword territory; vector search may confuse similar codes.' },
+      { q: 'A user types “I misplaced my work computer” and the SOP says “lost endpoint”. Which mode helps?', options: ['Keyword only', 'Vector or hybrid', 'Neither', 'BM25 with higher k1'], answer: 1, why: 'Semantic search matches meaning even with no shared words.' },
+      { q: 'What does a reranker do?', options: ['Embeds documents', 'Re-scores a shortlist of candidates by reading each with the query', 'Generates the final answer', 'Chunks documents'], answer: 1, why: 'Rerankers are precise but slower, so they reorder the top candidates from first-stage retrieval.' },
+    ],
+    keyTerms: ['BM25', 'Semantic / vector search', 'Hybrid search', 'Reranker', 'Top-K'],
+  },
+  {
+    id: 'rag-vs-finetune',
+    levelId: 3,
+    title: 'The Golden PM Framework: Prompting vs. RAG vs. Fine-Tuning vs. Long Context',
+    summary: 'Four ways to make a model useful on your problem — what each one changes, what it costs and when to combine them.',
+    minutes: 14,
+    analogy: {
+      title: 'Four ways to prepare a new employee',
+      story: [
+        'Prompting is giving a capable new hire clear instructions for a task: “Draft replies in this format, be polite, escalate refunds above ₹10,000.” Fast, cheap, and enough more often than people expect.',
+        'RAG is giving them access to the company wiki and a great search bar. They look things up when asked, cite where they found it, and are always current when the wiki is updated. Long context is handing them the entire 400-page binder for every single question and asking them to read all of it first — simple, but slow and expensive if they get hundreds of questions a day.',
+        'Fine-tuning is sending them on a months-long training course that changes their habits — tone, format, specialised judgement. It is great for “how to behave”, poor for “what the facts are”: the course material is out of date the next time a policy changes, and you can’t easily see which page they learned a fact from.',
+      ],
+      mapping: [
+        { everyday: 'Clear instructions for the task', ai: 'Prompt engineering (system prompt + examples)' },
+        { everyday: 'Wiki + search bar', ai: 'RAG — knowledge retrieved at question time' },
+        { everyday: 'Reading the whole binder every time', ai: 'Long-context prompting' },
+        { everyday: 'Months-long training course', ai: 'Fine-tuning — changes behaviour, bakes in knowledge' },
+      ],
+      oneLiner: 'Prompting changes instructions, RAG changes knowledge, fine-tuning changes behaviour, long context trades cost for simplicity.',
+    },
+    diagram: {
+      caption: 'A decision path most experienced AI teams follow.',
+      nodes: [
+        { id: 'prompt', label: 'Start: Prompting', sub: 'hours', icon: Wand2 },
+        { id: 'knowledge', label: 'Need private/fresh facts?', sub: 'add RAG', icon: BookOpen },
+        { id: 'small', label: 'Small corpus, low volume?', sub: 'long context', icon: Files },
+        { id: 'behaviour', label: 'Behaviour/format at scale?', sub: 'fine-tune', icon: GraduationCap },
+        { id: 'combo', label: 'Combine & measure', sub: 'evals decide', icon: Scale },
+        { id: 'bot', label: 'Production system', sub: '', icon: Bot },
+      ],
+      steps: [
+        { title: 'Always start with prompting', body: 'A strong model, a clear system prompt and a few examples solve a large share of tasks. Build your golden dataset now so every later change is measured.', active: ['prompt'] },
+        { title: 'Facts missing or changing? Add RAG', body: 'If failures are about missing or outdated knowledge — your policies, products, cases — add retrieval. RAG gives citations, freshness and permission control.', active: ['prompt', 'knowledge'] },
+        { title: 'Tiny corpus, low volume? Long context may be enough', body: 'If the knowledge is a handful of documents and traffic is low, simply include them in the prompt. Prompt caching makes repeated documents cheaper. Re-evaluate when volume grows.', active: ['small'], peek: '20-page SOP ≈ 12k tokens × 300 queries/day ≈ manageable\n2,000 SOPs × 50k queries/day ≈ use RAG' },
+        { title: 'Behaviour problems at scale? Consider fine-tuning', body: 'If the model knows the facts but keeps getting the format, tone, taxonomy or a narrow skill wrong — or you need a smaller, cheaper model to imitate a large one — fine-tuning can help. It needs hundreds to thousands of high-quality examples and re-training when base models change.', active: ['behaviour'] },
+        { title: 'Combine and let evals decide', body: 'Mature systems often combine them: RAG for knowledge + a fine-tuned small model for format + tight prompts. Each addition must earn its place on the golden dataset.', active: ['combo', 'bot'] },
+      ],
+    },
+    sandboxTitle: 'Strategy picker',
+    sandboxIntro: 'Describe your project with the sliders. Each strategy is scored on fit, cost and time-to-value — and you get a recommended combination with the reasoning.',
+    pmLens: {
+      whenToUse: [
+        'Prompting: always first; most behaviour and format changes.',
+        'RAG: private, large or frequently changing knowledge; citations required.',
+        'Long context: few documents, low volume, prototype stage, whole-document reasoning (e.g. compare two contracts).',
+        'Fine-tuning: stable, narrow tasks at high volume; strict format/style; distilling to a smaller model.',
+      ],
+      costLatency: [
+        'Prompting: hours to days; cost = tokens.',
+        'RAG: 1–4 weeks to a solid v1; adds retrieval infra and context tokens.',
+        'Long context: zero build time; high per-call cost and latency for big documents.',
+        'Fine-tuning: weeks of data preparation, training runs, re-training on base-model upgrades; can cut per-call cost by enabling smaller models.',
+      ],
+      failureModes: [
+        'Fine-tuning to “teach facts” — hard to update, no citations, can increase confident errors.',
+        'Long context at scale — budgets explode and lost-in-the-middle errors grow.',
+        'Jumping to fine-tuning before having a golden dataset to prove it helped.',
+        'RAG over messy, unowned documents — retrieval quality capped by content quality.',
+      ],
+      questions: [
+        'Are our failures about missing knowledge or wrong behaviour? Show me examples of each.',
+        'What is the measured improvement on the golden dataset from each proposed technique?',
+        'What is the ongoing maintenance cost — re-indexing for RAG vs. re-training for fine-tuning?',
+      ],
+    },
+    quiz: [
+      { q: 'An assistant must answer from 3,000 policy documents updated weekly, with citations. Best fit?', options: ['Fine-tuning', 'RAG', 'Long context', 'Prompting only'], answer: 1, why: 'Large, changing knowledge with citations is exactly what RAG is for.' },
+      { q: 'The model knows the facts but keeps producing the wrong output format at 2M requests/day. Which option might help?', options: ['RAG', 'Fine-tuning (possibly a smaller model)', 'More context', 'Higher temperature'], answer: 1, why: 'Fine-tuning shapes consistent behaviour and can let a cheaper model do the job.' },
+      { q: 'Why is fine-tuning a poor way to keep facts current?', options: ['It is too cheap', 'Knowledge is baked into weights, needs re-training to update and gives no citations', 'It increases the context window', 'It only works in English'], answer: 1, why: 'Facts learned in weights are hard to update or trace; RAG keeps knowledge external and current.' },
+    ],
+    keyTerms: ['Fine-tuning', 'RAG (Retrieval-Augmented Generation)', 'Long-context prompting', 'System prompt', 'Golden dataset'],
+  },
+];

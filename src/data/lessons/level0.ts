@@ -1,0 +1,397 @@
+import { ListChecks, Table2, Image, Sparkles, Scale, Tags, Shapes, Trophy, MessageSquareHeart, Database, Cpu, HardDrive, Send, MessageCircle, Calculator, Bot, BarChart3, Dice5, FlaskConical } from 'lucide-react';
+import type { Lesson } from '../types';
+
+export const level0Lessons: Lesson[] = [
+  {
+    id: 'ai-landscape',
+    levelId: 0,
+    title: 'Rules vs. Classical ML vs. Deep Learning vs. GenAI',
+    summary: 'The four families of “smart software”, what each is good at, and why the cheapest one that works usually wins.',
+    minutes: 12,
+    analogy: {
+      title: 'Four cooks in one kitchen',
+      story: [
+        'Imagine a restaurant kitchen with four very different cooks. The first cook follows a laminated recipe card exactly: 200g rice, 400ml water, 12 minutes. Give them the same ingredients and you get the same dish every time — but hand them an ingredient that is not on the card and they freeze.',
+        'The second cook has read ten thousand past order slips with customer ratings. They have noticed patterns — “people who order spicy starters rate desserts lower” — and use those patterns to predict what will please the next table. They are great with neat, tabular information.',
+        'The third cook can taste, smell and look at any plate and instantly recognise the dish and what is wrong with it. They learned from millions of raw examples, not from neat tables. And the fourth cook? Ask for “a monsoon-themed fusion dessert for a diabetic guest” and they invent a brand-new recipe on the spot, drawing on everything they have ever tasted — occasionally inventing an ingredient that does not exist.',
+        'A smart restaurant manager does not ask the inventive fourth cook to boil rice. They use the recipe card for boiling rice, and save the expensive creative chef for problems that genuinely need creativity. That is exactly your job as an AI PM.',
+      ],
+      mapping: [
+        { everyday: 'Laminated recipe card', ai: 'Rules-based software (if/then, SQL, workflows)' },
+        { everyday: 'Cook who learned from rated order slips', ai: 'Classical Machine Learning on tabular data' },
+        { everyday: 'Cook who recognises dishes by sight and smell', ai: 'Deep Learning on images, audio, raw text' },
+        { everyday: 'Chef who invents new recipes on request', ai: 'Generative AI / Large Language Models' },
+        { everyday: 'Inventing an ingredient that doesn’t exist', ai: 'Hallucination' },
+      ],
+      oneLiner: 'Each step up the ladder handles messier inputs and more open-ended outputs — at higher cost, lower predictability and lower explainability.',
+    },
+    diagram: {
+      caption: 'Click through the ladder of approaches. Each rung adds capability — and cost, unpredictability and governance burden.',
+      nodes: [
+        { id: 'rules', label: 'Rules / SQL', sub: 'People write logic', icon: ListChecks },
+        { id: 'ml', label: 'Classical ML', sub: 'Learns from tables', icon: Table2 },
+        { id: 'dl', label: 'Deep Learning', sub: 'Learns from raw data', icon: Image },
+        { id: 'genai', label: 'Generative AI', sub: 'Creates new content', icon: Sparkles },
+        { id: 'choose', label: 'PM decision', sub: 'Simplest that works', icon: Scale },
+      ],
+      steps: [
+        {
+          title: 'Rules: a human writes every decision',
+          body: 'An engineer encodes the policy as explicit logic. It is fast, nearly free to run, 100% repeatable and easy to audit. It breaks when inputs are messy or the policy has too many exceptions to write down.',
+          active: ['rules'],
+          peek: "IF applicant.age >= 60 AND income < 300000\n  THEN scheme = 'Senior Citizen Pension'\nELSE IF ...   -- every case is hand-written",
+        },
+        {
+          title: 'Classical ML: learn the rules from history',
+          body: 'Instead of writing rules, you give the algorithm thousands of past examples with known outcomes (e.g. which loans defaulted). It learns weights for each column and predicts outcomes for new rows. Needs clean, labelled, tabular data.',
+          active: ['ml'],
+          peek: 'features: [income, tenure, past_defaults, region]\nlabel:    defaulted (yes/no)\nmodel:    gradient-boosted trees → P(default)=0.18',
+        },
+        {
+          title: 'Deep Learning: learn from raw, unstructured data',
+          body: 'Neural networks with many layers learn directly from pixels, sound waves or raw text — reading a scanned form, detecting a damaged solar panel from a drone photo, transcribing a call. Needs lots of data and compute, and is harder to explain.',
+          active: ['dl'],
+          peek: 'input:  1024×768 drone image of a solar panel\nlayers: conv → conv → pool → … → dense\noutput: crack_detected = 0.94',
+        },
+        {
+          title: 'Generative AI: produce new text, code or images',
+          body: 'Large Language Models are deep learning models trained on enormous text corpora to predict the next word. That single skill lets them summarise, draft, extract, translate and converse — on almost any topic, with no task-specific training. The trade-off: they are probabilistic, priced per token and can hallucinate.',
+          active: ['genai'],
+          peek: 'prompt: "Summarise this 6-page grievance in 3 bullet points"\noutput: "• Pension delayed 7 months…" (new text, never seen before)',
+        },
+        {
+          title: 'The PM decision: climb only as high as you must',
+          body: 'Start at the bottom rung and move up only when the cheaper approach demonstrably fails. A surprising number of “AI projects” are solved by a good SQL query or a better form. Over-engineering costs money, latency and trust.',
+          active: ['choose', 'rules'],
+          peek: 'Messy free-text input?        → consider GenAI\nPredict a number from tables? → Classical ML\nFixed policy with few rules?  → Rules/SQL wins',
+        },
+      ],
+    },
+    sandboxTitle: 'Same problem, four approaches',
+    sandboxIntro: 'A ministry wants to auto-route incoming citizen grievances to the right department. Change how messy the input is, how many arrive per day and whether every decision must be explainable — watch which approach wins.',
+    pmLens: {
+      whenToUse: [
+        'Rules/SQL: the policy can be written down in under ~50 clear rules and inputs are structured (dropdowns, IDs, dates).',
+        'Classical ML: you need to predict a number or category from historical tabular data with thousands of labelled rows.',
+        'Deep learning: inputs are images, audio, video or scanned documents.',
+        'GenAI: inputs or outputs are free-form language — summarising, drafting, extracting from messy text, conversation.',
+      ],
+      costLatency: [
+        'Rules cost fractions of a paisa per decision and run in microseconds.',
+        'Classical ML is cheap to run but needs data preparation and labelling up front.',
+        'GenAI is priced per token on every call — costs grow linearly with usage and can be 1,000× a rule.',
+        'GenAI calls typically take 0.5–10 seconds; rules take < 1 millisecond.',
+      ],
+      failureModes: [
+        'Using GenAI for a deterministic calculation (tax, eligibility) — it will occasionally get arithmetic wrong.',
+        'Rules that explode into thousands of exceptions nobody can maintain.',
+        'Classical ML trained on biased or outdated history quietly repeats that bias.',
+        '“AI-washing”: choosing GenAI for the press release, not the problem.',
+      ],
+      questions: [
+        'What is the simplest non-AI baseline, and how well does it perform on our real data today?',
+        'Which part of this workflow genuinely needs language understanding, and which parts can stay as rules?',
+        'If this component is wrong 5% of the time, what is the business impact — and who catches it?',
+      ],
+    },
+    quiz: [
+      {
+        q: 'A state department must calculate pension amounts from a fixed formula based on years of service. What is the best fit?',
+        options: ['A frontier LLM', 'Rules / a SQL formula', 'A deep learning model', 'Unsupervised clustering'],
+        answer: 1,
+        why: 'The formula is fixed and must be exact and auditable. Rules are cheaper, deterministic and explainable — an LLM adds cost and the risk of arithmetic errors.',
+      },
+      {
+        q: 'Which input most strongly suggests a GenAI approach?',
+        options: ['A dropdown selection', 'A date field', 'Free-text complaints in mixed Hindi and English with typos', 'A numeric meter reading'],
+        answer: 2,
+        why: 'Messy, free-form language is exactly where LLMs outperform rules and classical ML.',
+      },
+      {
+        q: 'What is the main trade-off as you move from rules to GenAI?',
+        options: ['More capability, but higher cost and less predictability', 'Lower cost and higher explainability', 'No trade-off — GenAI is strictly better', 'GenAI needs more labelled data than classical ML'],
+        answer: 0,
+        why: 'Each rung handles messier problems but costs more per decision, is less predictable and is harder to explain and govern.',
+      },
+    ],
+    keyTerms: ['Rules-based system', 'Machine Learning (ML)', 'Deep Learning', 'Generative AI (GenAI)', 'Hallucination'],
+  },
+  {
+    id: 'learning-types',
+    levelId: 0,
+    title: 'Supervised vs. Unsupervised vs. Reinforcement Learning',
+    summary: 'Three ways machines learn — with answer keys, by finding patterns, or by trial and error — and where each shows up in real projects.',
+    minutes: 12,
+    analogy: {
+      title: 'Three ways to train a new post-office clerk',
+      story: [
+        'Supervised learning is like training a new clerk with flashcards. You hand them 5,000 letters, each already stamped with the correct department — “Finance”, “Health”, “Land Records”. After enough examples, they can sort a new letter on their own. The catch: someone had to stamp all 5,000 letters first.',
+        'Unsupervised learning is like dumping 5,000 unsorted letters on the desk and saying “group the similar ones”. Nobody gives answers. The clerk notices that some letters mention “ration card”, others mention “electricity bill”, and makes piles. They discover the groups — but you still need a human to name each pile.',
+        'Reinforcement learning is like learning to ride a bicycle. Nobody hands you the correct handlebar angle for every second. You try, wobble, fall (penalty), stay upright a bit longer (reward), and gradually learn a strategy. Modern chat assistants were polished this way: humans rated answers and the model learned to prefer the highly rated style.',
+      ],
+      mapping: [
+        { everyday: 'Letters pre-stamped with departments', ai: 'Labelled training data' },
+        { everyday: 'Making piles of similar letters with no answers', ai: 'Clustering / unsupervised learning' },
+        { everyday: 'Falling off vs. staying upright', ai: 'Penalties and rewards in reinforcement learning' },
+        { everyday: 'Customers rating the clerk’s replies', ai: 'RLHF — Reinforcement Learning from Human Feedback' },
+      ],
+      oneLiner: 'Supervised learns from answer keys, unsupervised finds hidden structure, reinforcement learns a strategy from rewards.',
+    },
+    diagram: {
+      caption: 'Every learning style is defined by the feedback signal the machine receives. Step through to see each signal.',
+      nodes: [
+        { id: 'data', label: 'Raw data', sub: 'examples', icon: Database },
+        { id: 'sup', label: 'Supervised', sub: 'answer key', icon: Tags },
+        { id: 'unsup', label: 'Unsupervised', sub: 'find groups', icon: Shapes },
+        { id: 'rl', label: 'Reinforcement', sub: 'rewards', icon: Trophy },
+        { id: 'rlhf', label: 'RLHF in LLMs', sub: 'human ratings', icon: MessageSquareHeart },
+      ],
+      steps: [
+        { title: 'It all starts with data', body: 'Every approach needs examples. The difference is what extra signal accompanies them — correct answers, nothing at all, or a score after acting.', active: ['data'] },
+        {
+          title: 'Supervised: input + correct answer',
+          body: 'Each example has a label. The model adjusts itself to reduce the gap between its guess and the label. Used for fraud detection, document classification, demand forecasting. Quality depends heavily on label quality and quantity — labelling is often the biggest hidden cost.',
+          active: ['data', 'sup'],
+          peek: '{ text: "My pension hasn’t arrived", label: "Pensions" }\n{ text: "Streetlight broken on MG Road", label: "Municipal" }',
+        },
+        {
+          title: 'Unsupervised: no answers, just structure',
+          body: 'The algorithm groups similar items (clustering) or flags unusual ones (anomaly detection). Great for exploring data you do not understand yet — customer segments, unusual transactions. A human still interprets what each cluster means.',
+          active: ['data', 'unsup'],
+          peek: 'k-means(k=3) → cluster A: 1,240 grievances (keywords: pension, delay)\n                 cluster B:   860 (water, supply)\n                 cluster C:   410 (???) ← needs a human',
+        },
+        {
+          title: 'Reinforcement: act, get a reward, improve',
+          body: 'An agent takes actions in an environment and receives rewards or penalties. Over many episodes it learns a policy that maximises total reward. Used in robotics, games, recommendation and ad bidding.',
+          active: ['rl'],
+          peek: 'state: at junction 4 → action: turn left → reward: −1 (dead end)\nafter 500 episodes → policy: always turn right at junction 4',
+        },
+        {
+          title: 'RLHF: how chat assistants learned manners',
+          body: 'After an LLM is pre-trained (self-supervised: predict the next word on internet text), humans compare pairs of answers and pick the better one. A reward model learns those preferences and the LLM is tuned to score well — making it more helpful, polite and safer.',
+          active: ['rl', 'rlhf'],
+          peek: 'Answer A: "Here are 3 steps…"  ✅ preferred\nAnswer B: "Figure it out."       ❌\n→ reward model learns: helpful & specific = good',
+        },
+      ],
+    },
+    sandboxTitle: 'Play with all three learning styles',
+    sandboxIntro: 'Supervised: see how label count and label quality drive accuracy and cost. Unsupervised: run a real k-means clustering. Reinforcement: train a real Q-learning agent on a grid and watch its strategy improve with more episodes.',
+    pmLens: {
+      whenToUse: [
+        'Supervised: you have (or can afford to create) historical examples with trusted outcomes.',
+        'Unsupervised: discovery phase — segmenting citizens or customers, finding anomalies, exploring a new dataset.',
+        'Reinforcement: sequential decisions with a clear reward (routing, bidding, scheduling) and a safe simulator.',
+        'RLHF/preference tuning: usually done by model vendors — you benefit from it rather than doing it yourself.',
+      ],
+      costLatency: [
+        'Labelling is often 40–70% of a supervised ML budget — ₹2–₹50 per label depending on expertise.',
+        'Unsupervised methods are cheap to run but expensive to interpret (analyst time).',
+        'RL needs thousands to millions of trial episodes — usually only feasible in simulation.',
+        'Once trained, all three are typically cheap at inference compared to LLM calls.',
+      ],
+      failureModes: [
+        'Noisy or inconsistent labels — the model faithfully learns the noise.',
+        'Clusters that look meaningful but reflect data-collection artefacts.',
+        'RL “reward hacking”: the agent finds a loophole that maximises reward but breaks the intent.',
+        'Training data that under-represents some groups, leading to unfair outcomes.',
+      ],
+      questions: [
+        'Where do our labels come from, who checked them, and what is the inter-annotator agreement?',
+        'How will a human interpret and validate these clusters before we act on them?',
+        'What could the system do that scores well on our metric but is clearly wrong for the business?',
+      ],
+    },
+    quiz: [
+      {
+        q: 'You have 20,000 past grievances, each tagged with the department that resolved it. Which learning type fits?',
+        options: ['Unsupervised', 'Supervised', 'Reinforcement', 'None — use rules'],
+        answer: 1,
+        why: 'Inputs paired with known correct outputs (labels) is the definition of supervised learning.',
+      },
+      {
+        q: 'What does an unsupervised clustering algorithm NOT give you?',
+        options: ['Groups of similar items', 'Names and business meaning for each group', 'A way to explore unlabelled data', 'Possible anomalies'],
+        answer: 1,
+        why: 'Clustering finds structure, but a human must interpret and name each cluster.',
+      },
+      {
+        q: 'How did chat assistants learn to be more helpful and polite after pre-training?',
+        options: ['More rules', 'RLHF — humans rated answers and the model was tuned towards preferred ones', 'Unsupervised clustering', 'A bigger context window'],
+        answer: 1,
+        why: 'Reinforcement Learning from Human Feedback uses human preference ratings as the reward signal.',
+      },
+    ],
+    keyTerms: ['Supervised learning', 'Unsupervised learning', 'Reinforcement learning (RL)', 'RLHF', 'Label'],
+  },
+  {
+    id: 'training-vs-inference',
+    levelId: 0,
+    title: 'Training vs. Inference',
+    summary: 'Why building a model and using a model are completely different cost centres — and why the model does not know yesterday’s news.',
+    minutes: 10,
+    analogy: {
+      title: 'Medical school vs. seeing patients',
+      story: [
+        'Becoming a doctor takes years of medical school — expensive, slow, done once. That is training. The doctor’s knowledge is “frozen” at graduation: a doctor who graduated in 2023 has not heard of a drug approved in 2025 unless someone hands them the new bulletin.',
+        'Seeing a patient is quick by comparison: listen, think, prescribe. That is inference. But it happens thousands of times. A clinic that sees 500 patients a day spends far more on consultations over a year than it ever spent on the doctor’s degree.',
+        'Most organisations never “send a model to medical school” — they hire a graduate (use a pre-trained model from a vendor) and pay per consultation (per token). Your biggest recurring cost is inference, and your biggest knowledge risk is the frozen graduation date.',
+      ],
+      mapping: [
+        { everyday: 'Years of medical school', ai: 'Training (GPUs, weeks, huge datasets)' },
+        { everyday: 'Graduation date', ai: 'Knowledge cutoff' },
+        { everyday: 'Each patient consultation', ai: 'An inference call (you pay per token)' },
+        { everyday: 'Handing the doctor the latest bulletin', ai: 'RAG — supplying fresh documents at inference time' },
+        { everyday: 'A short specialist residency', ai: 'Fine-tuning a pre-trained model' },
+      ],
+      oneLiner: 'Training is the expensive one-off education; inference is the per-use cost you pay forever — and the model only knows what it learned before its cutoff.',
+    },
+    diagram: {
+      caption: 'Follow a model from its training run to answering a real user’s request.',
+      nodes: [
+        { id: 'corpus', label: 'Training data', sub: 'books, web, code', icon: Database },
+        { id: 'train', label: 'Training run', sub: 'thousands of GPUs', icon: Cpu },
+        { id: 'weights', label: 'Frozen weights', sub: 'the “brain” file', icon: HardDrive },
+        { id: 'req', label: 'Inference request', sub: 'your prompt', icon: Send },
+        { id: 'ans', label: 'Answer', sub: 'paid per token', icon: MessageCircle },
+      ],
+      steps: [
+        { title: 'Collect a gigantic training corpus', body: 'Frontier models learn from trillions of tokens of text and code. The collection stops at a date — the knowledge cutoff. Nothing after that date is in the model.', active: ['corpus'], peek: 'corpus snapshot: up to 2025-03-31\n≈ 15 trillion tokens' },
+        { title: 'Training: adjust billions of parameters', body: 'For weeks, GPUs repeatedly predict the next token and nudge the model’s parameters to reduce errors. This costs tens to hundreds of crores of rupees for frontier models — which is why almost nobody trains from scratch.', active: ['corpus', 'train'], peek: 'step 1,200,000 / 1,500,000\nloss: 1.73 → 1.71\ncluster: 16,384 GPUs' },
+        { title: 'The result: a frozen file of weights', body: 'Training produces a fixed set of numbers. The model does not learn from your conversations afterwards unless the vendor retrains it. Fine-tuning creates a slightly adjusted copy for a specific task.', active: ['weights'], peek: 'model.safetensors   140 GB   (70B params × 2 bytes)' },
+        { title: 'Inference: every request runs the model once', body: 'When a user asks a question, the frozen model reads the prompt and generates an answer token by token. Each call consumes compute — you are billed for input and output tokens, every time.', active: ['weights', 'req'], peek: 'POST /v1/messages\ninput_tokens: 1,850   output_tokens: 320\ncost ≈ ₹0.90' },
+        { title: 'Answer — limited by the cutoff', body: 'If the question is about something after the cutoff or about your private data, the model either says it does not know or, worse, makes something up. The fix is usually to supply the facts at inference time (RAG), not to retrain.', active: ['ans'], peek: 'Q: "What did the 14 Oct 2026 circular change?"\nA (no RAG): plausible-sounding but invented answer ⚠️' },
+      ],
+    },
+    sandboxTitle: 'When does inference overtake training cost?',
+    sandboxIntro: 'Set a one-time fine-tuning budget and expected usage. Watch the cumulative cost lines cross — and see why monthly inference, not training, usually dominates the business case.',
+    pmLens: {
+      whenToUse: [
+        'Use pre-trained vendor models for nearly all projects — training from scratch is a national-lab or big-tech activity.',
+        'Consider fine-tuning only when prompting and RAG cannot reach the required style, format or narrow skill.',
+        'Plan explicitly for knowledge after the cutoff: RAG, tools or regular content refresh.',
+      ],
+      costLatency: [
+        'Inference is a recurring operating cost (OpEx) that scales with users × queries × tokens.',
+        'Fine-tuning is a smaller one-off cost plus re-training every time the base model or data changes.',
+        'Self-hosting shifts inference cost from per-token to GPU-hours — cheaper only at high, steady volume.',
+      ],
+      failureModes: [
+        'Business cases that count only build cost and ignore 3 years of inference spend.',
+        'Assuming the model “learns” from user chats in production (it usually does not).',
+        'Answers about recent events or policies that silently rely on outdated training data.',
+      ],
+      questions: [
+        'What is our projected monthly inference cost at 10× today’s pilot traffic?',
+        'What is the model’s knowledge cutoff, and how do we keep answers current after it?',
+        'If we fine-tune, who owns re-training when the vendor releases a new base model?',
+      ],
+    },
+    quiz: [
+      {
+        q: 'Which cost usually dominates over a 3-year AI program using a vendor model?',
+        options: ['Initial training', 'Ongoing inference', 'Buying the model licence once', 'Data labelling'],
+        answer: 1,
+        why: 'Inference is paid on every call and scales with usage; most teams never train from scratch.',
+      },
+      {
+        q: 'A model released in 2026 cannot answer a question about a policy notified last week. Why?',
+        options: ['The model is broken', 'The policy is after its knowledge cutoff and was not provided in the prompt', 'Temperature is too high', 'The context window is too large'],
+        answer: 1,
+        why: 'Training data stops at a cutoff date. Fresh facts must be supplied at inference time, e.g. via RAG.',
+      },
+      {
+        q: 'Does a typical production LLM learn from each user conversation automatically?',
+        options: ['Yes, continuously', 'No — weights are frozen; learning requires a separate training or fine-tuning run', 'Only on weekends', 'Only if temperature is 0'],
+        answer: 1,
+        why: 'Inference uses frozen weights. Any “memory” is provided via the prompt or external storage.',
+      },
+    ],
+    keyTerms: ['Training', 'Inference', 'Parameters / weights', 'Knowledge cutoff', 'Fine-tuning'],
+  },
+  {
+    id: 'deterministic-vs-probabilistic',
+    levelId: 0,
+    title: 'Deterministic vs. Probabilistic Systems',
+    summary: 'Why the same question can get different answers from AI — and how that changes testing, sign-off and stakeholder expectations.',
+    minutes: 10,
+    analogy: {
+      title: 'A vending machine vs. a storyteller',
+      story: [
+        'Press B4 on a vending machine and you get the same packet of chips every single time. If you do not, the machine is broken. That is a deterministic system — like a calculator, a tax formula or a database query.',
+        'Now ask a friend, “How was your weekend?” five times. You will hear the same broad story, but the words change each time; one version mentions the rain, another mentions the traffic. Once in a while they embellish — “it was the best biryani in India!” That is a probabilistic system. An LLM is a storyteller, not a vending machine.',
+        'You would never sign off a vending machine by asking “did it give chips once?” — and you cannot sign off a storyteller by checking a single answer either. You need to listen to many tellings and judge whether they are consistently accurate and appropriate.',
+      ],
+      mapping: [
+        { everyday: 'Vending machine button B4', ai: 'Deterministic code: same input → same output' },
+        { everyday: 'Friend retelling their weekend', ai: 'LLM sampling different words each run' },
+        { everyday: 'Embellishing the biryani', ai: 'Hallucination / unsupported claim' },
+        { everyday: 'Listening to many tellings', ai: 'Running evals across a dataset, many times' },
+      ],
+      oneLiner: 'Deterministic systems are tested with exact expected outputs; probabilistic systems are tested with rubrics, statistics and guardrails.',
+    },
+    diagram: {
+      caption: 'Compare the path of a deterministic calculation with an LLM response.',
+      nodes: [
+        { id: 'in', label: 'Same input', sub: '“₹10,000 + 18% GST”', icon: Send },
+        { id: 'calc', label: 'Calculator', sub: 'deterministic', icon: Calculator },
+        { id: 'llm', label: 'LLM', sub: 'probabilistic', icon: Bot },
+        { id: 'dist', label: 'Probabilities', sub: 'many possible tokens', icon: BarChart3 },
+        { id: 'sample', label: 'Sampling', sub: 'roll the dice', icon: Dice5 },
+        { id: 'test', label: 'How we test', sub: 'exact vs. rubric', icon: FlaskConical },
+      ],
+      steps: [
+        { title: 'Feed both systems the same input', body: 'We ask both a calculator and an LLM to compute GST on ₹10,000.', active: ['in'] },
+        { title: 'The calculator follows fixed logic', body: 'Code executes the formula 10000 × 1.18. It returns ₹11,800 — today, tomorrow and a million times in a row.', active: ['in', 'calc'], peek: 'total = amount * 1.18  →  11800.00  (always)' },
+        { title: 'The LLM predicts likely text', body: 'The LLM does not “calculate”; it predicts the most plausible next tokens based on patterns it has seen. Usually that yields ₹11,800, phrased in different ways.', active: ['in', 'llm'] },
+        { title: 'Every next token is a probability distribution', body: 'At each step the model scores thousands of candidate tokens. “11” might get 92%, “12” 3%, “10” 2%… The answer is assembled one token at a time.', active: ['llm', 'dist'], peek: 'next token after "₹":  "11" 0.92 | "12" 0.03 | "10" 0.02 | …' },
+        { title: 'Sampling picks one — so outputs vary', body: 'With temperature above 0, the model sometimes picks a less likely token. Different wording is harmless; a wrong number is not. Even at temperature 0, outputs can vary slightly across hardware and model versions.', active: ['dist', 'sample'], peek: 'run 1: "The total is ₹11,800."\nrun 2: "Including 18% GST: ₹11,800."\nrun 3: "Total payable ₹11,880." ⚠️' },
+        { title: 'So testing must change', body: 'Deterministic code: assert output == 11800. Probabilistic AI: run many cases, many times, score against rubrics (correct? grounded? safe?) and set pass-rate thresholds. Better still — let the LLM call the calculator as a tool.', active: ['test'], peek: 'Deterministic UAT:   1 test → pass/fail\nAI UAT:  200 cases × 3 runs → 96.5% pass (gate ≥ 95%)' },
+      ],
+    },
+    sandboxTitle: 'Run it five times',
+    sandboxIntro: 'Press “Run 5×” to send the same request to a deterministic calculator and to a simulated LLM. Increase temperature and watch consistency fall — and occasional invented details creep in.',
+    pmLens: {
+      whenToUse: [
+        'Deterministic logic for anything that must be exact: money, eligibility, dates, legal thresholds.',
+        'Probabilistic AI for judgement-heavy language tasks where several good answers exist.',
+        'Hybrid: let the LLM understand the request, then call deterministic tools to compute the answer.',
+      ],
+      costLatency: [
+        'Probabilistic systems need more testing effort: datasets, repeated runs, LLM judges.',
+        'Lower temperature does not cost more, but redundant “run it 3 times and vote” strategies multiply cost.',
+        'Tool calls (calculator, database) add a little latency but remove a whole class of errors.',
+      ],
+      failureModes: [
+        'Stakeholders expecting “it worked in the demo, so it always works”.',
+        'UAT that checks one happy-path example and signs off.',
+        'Letting an LLM perform arithmetic or eligibility logic directly in text.',
+      ],
+      questions: [
+        'Which outputs in this workflow must be exact, and are they computed by code rather than the model?',
+        'How many runs per test case do we use, and what pass-rate threshold gates a release?',
+        'What temperature and seed settings are we using in production vs. in testing?',
+      ],
+    },
+    quiz: [
+      {
+        q: 'Which is the best way to UAT an LLM feature?',
+        options: ['Check one example in a demo', 'Run a representative dataset multiple times and score against rubrics with a pass-rate threshold', 'Assert the output exactly equals a fixed string', 'Ask the vendor if it works'],
+        answer: 1,
+        why: 'Probabilistic systems need statistical testing across many cases and runs, not a single exact-match check.',
+      },
+      {
+        q: 'An assistant must quote the exact pension amount. What design is safest?',
+        options: ['Ask the LLM to compute it at temperature 1.0', 'Have the LLM call a deterministic calculation tool and quote the result', 'Fine-tune the model on pension amounts', 'Increase the context window'],
+        answer: 1,
+        why: 'Exact values should come from deterministic code; the LLM handles the language around them.',
+      },
+      {
+        q: 'At temperature 0, outputs are…',
+        options: ['Guaranteed identical forever', 'Much more consistent, but can still vary slightly across infrastructure and model updates', 'Completely random', 'Always correct'],
+        answer: 1,
+        why: 'Temperature 0 picks the most likely token, but numerical and version differences can still cause small variations — and the most likely answer can still be wrong.',
+      },
+    ],
+    keyTerms: ['Deterministic', 'Probabilistic', 'Temperature', 'Hallucination', 'Evals'],
+  },
+];
